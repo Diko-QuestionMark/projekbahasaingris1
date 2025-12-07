@@ -3,14 +3,14 @@ import 'package:confetti/confetti.dart';
 import 'package:lottie/lottie.dart';
 import '../models/question_model.dart';
 
-class QuizPage extends StatefulWidget {
-  const QuizPage({super.key});
+class PracticeMainIdea extends StatefulWidget {
+  const PracticeMainIdea({super.key});
 
   @override
-  State<QuizPage> createState() => _QuizPageState();
+  State<PracticeMainIdea> createState() => _QuizPageState();
 }
 
-class _QuizPageState extends State<QuizPage> with TickerProviderStateMixin {
+class _QuizPageState extends State<PracticeMainIdea> with TickerProviderStateMixin {
   int currentQuestion = 0;
   int score = 0;
   bool quizFinished = false;
