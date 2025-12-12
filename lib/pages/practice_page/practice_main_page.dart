@@ -1,18 +1,114 @@
 import 'package:flutter/material.dart';
-import '../../models/question_model.dart';
+import 'package:confetti/confetti.dart';
 import 'package:lottie/lottie.dart';
+
+import '../../models/question_model.dart';
+import '../../database/q_dta_p_main_idea.dart';
+
 
 class PracticeMainIdea extends StatefulWidget {
   const PracticeMainIdea({super.key});
 
   @override
   State<PracticeMainIdea> createState() => _QuizPageState();
-}
+}          
 
-class _QuizPageState extends State<PracticeMainIdea> {
+class _QuizPageState extends State<PracticeMainIdea>
+    with TickerProviderStateMixin {
   int currentQuestion = 0;
   int score = 0;
   bool quizFinished = false;
+
+  bool answerLocked = false;
+  int? selectedIndex;
+  double progressValue = 0.0;
+
+  late ConfettiController _confettiController;
+
+  late AnimationController shakeController;
+  late Animation<double> shakeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _confettiController = ConfettiController(
+      duration: const Duration(milliseconds: 800),
+    );
+
+    shakeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+
+    shakeAnimation = Tween<double>(begin: 0, end: 12).animate(
+      CurvedAnimation(parent: shakeController, curve: Curves.elasticIn),
+    );
+  }
+
+  @override
+  void dispose() {
+    shakeController.dispose();
+    _confettiController.dispose();
+    super.dispose();
+  }
+
+  void handleAnswer(int index) async {
+    if (answerLocked) return;
+
+    setState(() {
+      selectedIndex = index;
+      answerLocked = true;
+    });
+
+    bool correct = index == questions[currentQuestion].correctIndex;
+
+    if (correct) {
+      score++;
+      _confettiController.play();
+    } else {
+      // SHAKE ANIMATION (SEPERTI FILE FindMainIdea)
+      shakeController.forward().then((_) => shakeController.reverse());
+    }
+
+    // Progress bar manual 3 detik
+    progressValue = 0.0;
+    const delay = Duration(milliseconds: 30);
+
+    for (int i = 0; i < 100; i++) {
+      await Future.delayed(delay);
+      if (!mounted) return;
+      setState(() => progressValue += 0.01);
+    }
+
+    _nextQuestion();
+  }
+
+  void _nextQuestion() {
+    if (currentQuestion < questions.length - 1) {
+      setState(() {
+        currentQuestion++;
+        selectedIndex = null;
+        answerLocked = false;
+        progressValue = 0.0;
+      });
+    } else {
+      setState(() => quizFinished = true);
+    }
+  }
+
+  void restartQuiz() {
+    setState(() {
+      currentQuestion = 0;
+      score = 0;
+      quizFinished = false;
+      answerLocked = false;
+      selectedIndex = null;
+      progressValue = 0.0;
+    });
+  }
+
+  // ===================== DAFTAR SOAL =====================
 
   final List<Question> questions = [
     Question(
@@ -23,9 +119,8 @@ class _QuizPageState extends State<PracticeMainIdea> {
         "A minor detail mentioned in the passage.",
         "The longest sentence in the paragraph.",
       ],
-      correctIndex: 2,
+      correctIndex: 1,
     ),
-
     Question(
       text: "What is the correct difference between Topic and Main Idea?",
       options: [
@@ -36,7 +131,6 @@ class _QuizPageState extends State<PracticeMainIdea> {
       ],
       correctIndex: 1,
     ),
-
     Question(
       text: "Which option is an example of a Topic?",
       options: [
@@ -47,124 +141,30 @@ class _QuizPageState extends State<PracticeMainIdea> {
       ],
       correctIndex: 3,
     ),
-
     Question(
       text:
-          "`Dogs are popular pets because they are friendly, loyal, and helpful to humans. Many families around the world choose dogs as companions because they can protect homes, play with children, and follow commands.` \n\nWhat is the Main Idea of the paragraph about dogs?",
+          "`Dogs are popular pets because they are friendly, loyal, and helpful to humans. Many families choose dogs because they can protect homes and follow commands.`\n\nWhat is the Main Idea?",
       options: [
-        "Dogs can follow many commands.",
-        "Dogs are popular pets because they are friendly, loyal, and helpful to humans.",
-        "Many families own dogs as pets.",
-        "Dogs bark when strangers come.",
+        "Dogs can follow commands.",
+        "Dogs are popular pets because they are friendly, loyal, and helpful.",
+        "Many families own dogs.",
+        "Dogs bark to protect homes.",
       ],
       correctIndex: 1,
     ),
-
     Question(
-      text: "What is the purpose of supporting details in a paragraph?",
+      text: "What is the purpose of supporting details?",
       options: [
-        "To introduce a completely new topic.",
+        "To introduce a new topic.",
         "To explain, support, or prove the Main Idea.",
         "To make the paragraph look longer.",
-        "To distract the reader from the topic.",
+        "To distract the reader.",
       ],
       correctIndex: 1,
-    ),
-
-    Question(
-      text:
-          "`Regular exercise plays an important role in keeping the body healthy. "
-          "It helps improve heart function, strengthens muscles, and boosts energy levels. "
-          "People who exercise regularly often feel more active and less stressed.`\n\n"
-          "Which sentence is a Supporting Detail of the idea 'Exercise improves health'?",
-      options: [
-        "Exercise is important for everyone.",
-        "Exercise helps keep the heart strong.",
-        "People should exercise more often.",
-        "Health is a basic need for humans.",
-      ],
-      correctIndex: 1,
-    ),
-
-    Question(
-      text: "How do you find the Main Idea of a paragraph?",
-      options: [
-        "Read only the first sentence.",
-        "Ignore all details and examples.",
-        "Read the whole paragraph and identify the central message.",
-        "Look only at numbers and data.",
-      ],
-      correctIndex: 2,
-    ),
-
-    Question(
-      text:
-          "`Water is essential for the body because it helps with digestion, keeps the body hydrated, "
-          "and supports overall health. While many people like to drink sugary beverages such as soda "
-          "or sweet tea, these drinks often contain too much sugar and can be unhealthy if consumed too often. "
-          "That’s why choosing water is usually a better and healthier option.`\n\n"
-          "What is the Main Idea of the paragraph about water?",
-      options: [
-        "Sugary drinks taste good.",
-        "Water helps the body function but sugary drinks contain too much sugar.",
-        "People buy many different drinks each day.",
-        "Water is a healthier choice than sugary drinks.",
-      ],
-      correctIndex: 3,
-    ),
-
-    Question(
-      text:
-          "`Social media has become an important part of modern life. "
-          "People use it to communicate with friends and family, share information instantly, "
-          "and stay updated on events happening around the world. Because of these benefits, "
-          "social media plays a significant role in helping people stay connected.`\n\n"
-          "According to the paragraph, social media is important because...",
-      options: [
-        "Everyone uses social media every day.",
-        "It helps people communicate, share information, and stay connected.",
-        "It is only used for entertainment and fun.",
-        "It completely replaces face-to-face interactions.",
-      ],
-      correctIndex: 1,
-    ),
-
-    Question(
-      text:
-          "Based on the strategies explained in the video about finding the main idea, which strategy is NOT mentioned in the video?",
-      options: [
-        "Using titles and headings",
-        "Using topic sentences",
-        "Using concluding sentences",
-        "Find the most difficult word",
-      ],
-      correctIndex: 3,
     ),
   ];
 
-  void answerQuestion(int selectedIndex) {
-    if (selectedIndex == questions[currentQuestion].correctIndex) {
-      score++;
-    }
-
-    if (currentQuestion < questions.length - 1) {
-      setState(() {
-        currentQuestion++;
-      });
-    } else {
-      setState(() {
-        quizFinished = true;
-      });
-    }
-  }
-
-  void restartQuiz() {
-    setState(() {
-      currentQuestion = 0;
-      score = 0;
-      quizFinished = false;
-    });
-  }
+  // =============================================================
 
   @override
   Widget build(BuildContext context) {
@@ -172,23 +172,16 @@ class _QuizPageState extends State<PracticeMainIdea> {
       return Scaffold(
         appBar: AppBar(
           title: const Text("Main Idea Practice Result"),
-          backgroundColor: Color.fromARGB(255, 231, 231, 231),
+          backgroundColor: const Color.fromARGB(255, 231, 231, 231),
         ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              //Lotiieee=======================================================
-              Center(
-                child: SizedBox(
-                  height: 250,
-                  child: Lottie.asset(
-                    'assets/lottie/star.json',
-                    fit: BoxFit.contain,
-                  ),
-                ),
+              SizedBox(
+                height: 250,
+                child: Lottie.asset('assets/lottie/star.json'),
               ),
-
               const Text("Your Score:", style: TextStyle(fontSize: 28)),
               const SizedBox(height: 10),
               Text(
@@ -199,18 +192,13 @@ class _QuizPageState extends State<PracticeMainIdea> {
                 ),
               ),
               const SizedBox(height: 20),
-
               ElevatedButton(
                 onPressed: restartQuiz,
                 child: const Text("Try Again"),
               ),
-
               const SizedBox(height: 12),
-
               ElevatedButton(
-                onPressed: () {
-                  Navigator.popUntil(context, (route) => route.isFirst);
-                },
+                onPressed: () => Navigator.pop(context),
                 child: const Text("Return to Home"),
               ),
             ],
@@ -221,60 +209,120 @@ class _QuizPageState extends State<PracticeMainIdea> {
 
     final question = questions[currentQuestion];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Main Idea Practice"),
-        backgroundColor: const Color.fromARGB(255, 231, 231, 231),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Pertanyaan ${currentQuestion + 1}/${questions.length}",
-                style: const TextStyle(fontSize: 18, color: Colors.grey),
+    return Stack(
+      children: [
+        // ================= SHAKE AREA =================
+        AnimatedBuilder(
+          animation: shakeAnimation,
+          builder: (context, child) {
+            double offset = shakeAnimation.value;
+            return Transform.translate(
+              offset: Offset(
+                answerLocked && selectedIndex != question.correctIndex
+                    ? (offset % 2 == 0 ? offset : -offset)
+                    : 0,
+                0,
               ),
+              child: child,
+            );
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text("Main Idea Practice"),
+              backgroundColor: const Color.fromARGB(255, 231, 231, 231),
+            ),
 
-              // ================= LOTTIE =================
-              Center(
-                child: SizedBox(
-                  height: 250,
-                  child: Lottie.asset(
-                    'assets/lottie/education.json',
-                    fit: BoxFit.contain,
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Pertanyaan ${currentQuestion + 1}/${questions.length}",
+                    style: const TextStyle(fontSize: 18, color: Colors.grey),
                   ),
-                ),
-              ),
 
-              const SizedBox(height: 10),
-
-              Text(
-                question.text,
-                style: const TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 30),
-
-              ...List.generate(question.options.length, (index) {
-                return Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: ElevatedButton(
-                    onPressed: () => answerQuestion(index),
-                    child: Text(question.options[index]),
+                  Center(
+                    child: SizedBox(
+                      height: 200,
+                      child: Lottie.asset('assets/lottie/education.json'),
+                    ),
                   ),
-                );
-              }),
 
-              const SizedBox(height: 40),
-            ],
+                  const SizedBox(height: 10),
+
+                  Text(
+                    question.text,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  // ===================== OPTIONS =====================
+                  ...List.generate(question.options.length, (index) {
+                    Color? color;
+
+                    if (answerLocked) {
+                      if (index == question.correctIndex) {
+                        color = Colors.green;
+                      } else if (index == selectedIndex) {
+                        color = Colors.red;
+                      } else {
+                        color = Colors.grey.shade400;
+                      }
+                    }
+
+                    return Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color,
+                        ),
+                        onPressed: () => handleAnswer(index),
+                        child: Text(
+                          question.options[index],
+                          style: const TextStyle(fontSize: 18),
+                        ),
+                      ),
+                    );
+                  }),
+
+                  const SizedBox(height: 20),
+
+                  // ===================== PROGRESS =====================
+                  if (answerLocked)
+                    LinearProgressIndicator(
+                      value: progressValue,
+                      backgroundColor: Colors.grey.shade300,
+                      color: Colors.purple,
+                    ),
+
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
           ),
         ),
-      ),
+
+        // ================= CONFETTI =================
+        Align(
+          alignment: Alignment.topCenter,
+          child: ConfettiWidget(
+            confettiController: _confettiController,
+            blastDirectionality: BlastDirectionality.explosive,
+            shouldLoop: false,
+            numberOfParticles: 25,
+            maxBlastForce: 10,
+            minBlastForce: 5,
+            emissionFrequency: 0.01,
+            gravity: 0.3,
+          ),
+        ),
+      ],
     );
   }
 }
