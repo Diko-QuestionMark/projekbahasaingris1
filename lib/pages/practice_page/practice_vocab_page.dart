@@ -50,7 +50,7 @@ class _PracticeVocabularyState extends State<PracticeVocabulary>
   }
 
   void _initLottie() {
-    _educationLottie = AssetLottie('assets/lottie/education.json').load();
+    _educationLottie = AssetLottie('assets/lottie/forPracticeVocab.json').load();
     _starLottie = AssetLottie('assets/lottie/star.json').load();
   }
 
@@ -236,7 +236,7 @@ class _PracticeVocabularyState extends State<PracticeVocabulary>
                     letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 0),
                 _buildLottieHeader(),
                 const SizedBox(height: 16),
                 Text(
@@ -258,7 +258,7 @@ class _PracticeVocabularyState extends State<PracticeVocabulary>
   Widget _buildLottieHeader() {
     return Center(
       child: SizedBox(
-        height: 180,
+        height: 210,
         child: FutureBuilder<LottieComposition>(
           future: _educationLottie,
           builder: (_, snapshot) =>
