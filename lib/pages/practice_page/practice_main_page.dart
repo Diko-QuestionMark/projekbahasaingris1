@@ -21,6 +21,9 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
   bool answerLocked = false;
   int? selectedIndex;
 
+  /// 🔒 CONFETTI GUARD
+  bool confettiPlayed = false;
+
   // Lottie preload
   late final Future<LottieComposition> _lottieEducation;
   late final Future<LottieComposition> _lottieStar;
@@ -46,9 +49,9 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
     _lottieEducation = AssetLottie('assets/lottie/education.json').load();
     _lottieStar = AssetLottie('assets/lottie/star.json').load();
 
-    // Confetti
+    // 🎉 Confetti (durasi pendek = stabil)
     _confettiController = ConfettiController(
-      duration: const Duration(seconds: 2),
+      duration: const Duration(milliseconds: 100),
     );
 
     // Shake animation
@@ -65,17 +68,15 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
       vsync: this,
       duration: const Duration(seconds: 3),
     );
-    progressAnimation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(progressController);
+    progressAnimation =
+        Tween<double>(begin: 0, end: 1).animate(progressController);
   }
 
   @override
   void dispose() {
     shakeController.dispose();
-    _confettiController.dispose();
     progressController.dispose();
+    _confettiController.dispose();
     super.dispose();
   }
 
@@ -87,23 +88,23 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
       answerLocked = true;
     });
 
-    bool correct = index == questions[currentQuestion].correctIndex;
+    final correct = index == questions[currentQuestion].correctIndex;
 
-    if (correct) {
+    if (correct && !confettiPlayed) {
+      confettiPlayed = true;
       score++;
-      // Restart confetti supaya konsisten
-      _confettiController.stop();
       _confettiController.play();
-    } else {
-      // Shake jawaban salah
+    } else if (!correct) {
       shakeController.forward().then((_) => shakeController.reverse());
     }
 
-    // Mulai progress bar
     progressController.forward(from: 0).whenComplete(_nextQuestion);
   }
 
   void _nextQuestion() {
+    _confettiController.stop();
+    confettiPlayed = false;
+
     if (currentQuestion < questions.length - 1) {
       setState(() {
         currentQuestion++;
@@ -116,12 +117,14 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
   }
 
   void restartQuiz() {
+    _confettiController.stop();
     setState(() {
       currentQuestion = 0;
       score = 0;
       quizFinished = false;
       answerLocked = false;
       selectedIndex = null;
+      confettiPlayed = false;
     });
   }
 
@@ -216,6 +219,7 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
                   ),
                 ),
                 const SizedBox(height: 25),
+
                 // OPTIONS
                 ...List.generate(question.options.length, (index) {
                   Color? color;
@@ -232,7 +236,7 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
                   return AnimatedBuilder(
                     animation: shakeAnimation,
                     builder: (context, child) {
-                      double offset = shakeAnimation.value;
+                      final offset = shakeAnimation.value;
                       return Transform.translate(
                         offset: Offset(
                           answerLocked &&
@@ -249,7 +253,9 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
                       width: double.infinity,
                       margin: const EdgeInsets.only(bottom: 12),
                       child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: color),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color,
+                        ),
                         onPressed: () => handleAnswer(index),
                         child: Text(
                           question.options[index],
@@ -259,8 +265,9 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
                     ),
                   );
                 }),
+
                 const SizedBox(height: 20),
-                // Progress bar rebuild sendiri
+
                 if (answerLocked)
                   AnimatedBuilder(
                     animation: progressAnimation,
@@ -272,22 +279,24 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
                       );
                     },
                   ),
+
                 const SizedBox(height: 40),
               ],
             ),
           ),
         ),
-        // Confetti
+
+        // 🎉 CONFETTI (STABLE)
         Align(
           alignment: Alignment.topCenter,
           child: ConfettiWidget(
             confettiController: _confettiController,
             blastDirectionality: BlastDirectionality.explosive,
             shouldLoop: false,
-            numberOfParticles: 50,
+            numberOfParticles: 25,
             maxBlastForce: 15,
-            minBlastForce: 5,
-            emissionFrequency: 0.02,
+            minBlastForce: 10,
+            emissionFrequency: 0.01,
             gravity: 0.3,
           ),
         ),

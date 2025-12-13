@@ -10,12 +10,12 @@ class VocabularyPage extends StatefulWidget {
 }
 
 class _VocabularyPageState extends State<VocabularyPage> {
-  bool showMiniPracticeAnswer = false;
+  // ---------------- STATE ----------------
+  List<bool> showMiniPracticeAnswers = List.generate(5, (_) => false);
 
-  // YouTube Section
-  final String youtubeVideoId = "SEz0k7Y7G1U";
   final String youtubeUrl = "https://youtu.be/SEz0k7Y7G1U";
 
+  // ---------------- METHODS ----------------
   Future<void> _launchUrl() async {
     final Uri uri = Uri.parse(youtubeUrl);
     if (!await launchUrl(uri)) {
@@ -25,7 +25,7 @@ class _VocabularyPageState extends State<VocabularyPage> {
     }
   }
 
-  // ---------- REUSABLE UI COMPONENTS ----------
+  // ---------------- WIDGETS ----------------
   Widget _buildSectionCard({
     required String title,
     required Widget content,
@@ -78,7 +78,40 @@ class _VocabularyPageState extends State<VocabularyPage> {
     );
   }
 
-  Widget _buildParagraph(String text) {
+  Widget _buildParagraph(String text, {List<String>? highlights}) {
+    if (highlights != null && highlights.isNotEmpty) {
+      List<TextSpan> spans = [];
+      text.splitMapJoin(
+        RegExp(highlights.join('|')),
+        onMatch: (m) {
+          spans.add(
+            TextSpan(
+              text: m[0],
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+          );
+          return "";
+        },
+        onNonMatch: (n) {
+          spans.add(
+            TextSpan(
+              text: n,
+              style: const TextStyle(color: Colors.black87),
+            ),
+          );
+          return "";
+        },
+      );
+      return RichText(
+        text: TextSpan(
+          style: const TextStyle(fontSize: 15, height: 1.6),
+          children: spans,
+        ),
+      );
+    }
     return Text(
       text,
       style: const TextStyle(fontSize: 15, height: 1.6, color: Colors.black87),
@@ -94,9 +127,15 @@ class _VocabularyPageState extends State<VocabularyPage> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("• ", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text(
+                "• ",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               Expanded(
-                child: Text(item, style: const TextStyle(fontSize: 15, height: 1.5)),
+                child: Text(
+                  item,
+                  style: const TextStyle(fontSize: 15, height: 1.5),
+                ),
               ),
             ],
           ),
@@ -136,7 +175,10 @@ class _VocabularyPageState extends State<VocabularyPage> {
                 const SizedBox(width: 8),
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -146,12 +188,14 @@ class _VocabularyPageState extends State<VocabularyPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(text,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      height: 1.6,
-                      fontStyle: FontStyle.italic,
-                    )),
+                Text(
+                  text,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    height: 1.6,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
                 if (meaning != null) ...[
                   const SizedBox(height: 12),
                   Container(
@@ -169,13 +213,15 @@ class _VocabularyPageState extends State<VocabularyPage> {
                           child: Text(
                             meaning,
                             style: const TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.bold),
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  )
-                ]
+                  ),
+                ],
               ],
             ),
           ),
@@ -185,7 +231,6 @@ class _VocabularyPageState extends State<VocabularyPage> {
   }
 
   // ---------------- MAIN BUILD -------------------
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -196,15 +241,12 @@ class _VocabularyPageState extends State<VocabularyPage> {
         elevation: 0,
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [
-              Colors.green.shade600,
-              Colors.green.shade400,
-            ]),
+            gradient: LinearGradient(
+              colors: [Colors.green.shade600, Colors.green.shade400],
+            ),
           ),
         ),
       ),
-
-      // BODY
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -223,7 +265,11 @@ class _VocabularyPageState extends State<VocabularyPage> {
                   SizedBox(height: 12),
                   Text(
                     "Pelajari Vocabulary",
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                   SizedBox(height: 6),
                   Text(
@@ -234,7 +280,6 @@ class _VocabularyPageState extends State<VocabularyPage> {
               ),
             ),
 
-            // CONTENT
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -246,22 +291,24 @@ class _VocabularyPageState extends State<VocabularyPage> {
                     backgroundColor: Colors.green,
                     content: _buildParagraph(
                       "Vocabulary adalah kumpulan kata yang kamu ketahui atau gunakan. "
-                      "Semakin banyak vocabulary yang kamu pahami, semakin mudah kamu membaca dan memahami teks.",
+                      "Semakin banyak vocabulary yang kamu pahami, semakin mudah membaca dan memahami teks. "
+                      "Vocabulary sangat penting untuk membaca, menulis, berbicara, dan mendengar dalam bahasa Inggris.",
+                      highlights: ["Vocabulary"],
                     ),
                   ),
 
                   const SizedBox(height: 16),
 
-                  // TYPES
+                  // TYPES OF VOCAB
                   _buildSectionCard(
                     title: "Types of Vocabulary",
                     icon: Icons.category,
                     backgroundColor: Colors.blue,
                     content: _buildBulletList([
                       "Active Vocabulary → kata yang sering digunakan saat berbicara/menulis",
-                      "Passive Vocabulary → kata yang dipahami saat membaca/dengar",
-                      "Academic Vocabulary → kata formal yang sering muncul dalam teks pelajaran",
-                      "Topic Vocabulary → kosakata berdasarkan tema tertentu (health, environment, technology)",
+                      "Passive Vocabulary → kata yang dipahami saat membaca/dengar, tapi jarang digunakan",
+                      "Academic Vocabulary → kata formal yang sering muncul dalam teks pelajaran atau akademik",
+                      "Topic Vocabulary → kosakata berdasarkan tema tertentu (health, environment, technology, etc.)",
                     ]),
                   ),
 
@@ -276,132 +323,215 @@ class _VocabularyPageState extends State<VocabularyPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildParagraph(
-                          "Context clues adalah petunjuk dalam kalimat yang membantu menebak arti kata.",
+                          "Context clues adalah petunjuk yang terdapat dalam kalimat atau paragraf yang membantu kita menebak arti kata yang tidak diketahui.",
                         ),
                         const SizedBox(height: 12),
                         _buildBulletList([
-                          "Definition clue → arti dijelaskan langsung",
-                          "Synonym clue → ada kata yang artinya mirip",
-                          "Antonym clue → ada kata berlawanan makna",
-                          "Example clue → ada contoh",
-                          "Inference clue → harus disimpulkan dari konteks",
+                          "Definition clue → arti dijelaskan langsung dalam kalimat",
+                          "Synonym clue → ada kata yang artinya mirip sebagai petunjuk",
+                          "Antonym clue → ada kata yang berlawanan makna",
+                          "Example clue → kata dijelaskan melalui contoh",
+                          "Inference clue → arti kata harus disimpulkan dari konteks",
                         ]),
-                        const SizedBox(height: 12),
+                        // Contoh tiap clue
                         _buildExampleCard(
-                          title: "Contoh",
+                          title: "Definition clue",
                           text:
                               "The room was very dim, or not bright, so I could barely see.",
-                          meaning: "dim = not bright (definition clue)",
+                          meaning: "dim = not bright",
                           color: Colors.orange,
-                        )
+                        ),
+                        _buildExampleCard(
+                          title: "Synonym clue",
+                          text: "He is joyful, happy, and always smiling.",
+                          meaning: "joyful = happy",
+                          color: Colors.orange,
+                        ),
+                        _buildExampleCard(
+                          title: "Antonym clue",
+                          text: "Unlike the noisy city, the village is quiet.",
+                          meaning: "quiet = opposite of noisy",
+                          color: Colors.orange,
+                        ),
+                        _buildExampleCard(
+                          title: "Example clue",
+                          text:
+                              "Fruits like apples and oranges are nutritious.",
+                          meaning: "nutritious = healthy",
+                          color: Colors.orange,
+                        ),
+                        _buildExampleCard(
+                          title: "Inference clue",
+                          text:
+                              "She shivered and wore a thick coat. It must be cold outside.",
+                          meaning: "cold inferred from context",
+                          color: Colors.orange,
+                        ),
                       ],
                     ),
                   ),
 
                   const SizedBox(height: 16),
 
-                  // WORD FORMATION
+                  // ---------------- WORD FORMATION REVISI ----------------
                   _buildSectionCard(
                     title: "Word Formation",
                     icon: Icons.build,
                     backgroundColor: Colors.purple,
-                    content: _buildBulletList([
-                      "Prefix (awalan): un-, re-, mis-, pre-, auto-",
-                      "Suffix (akhiran): -ful, -less, -tion, -able, -ly",
-                      "Root word: photo (light), bio (life), act (do)",
-                    ]),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // COLLOCATIONS
-                  _buildSectionCard(
-                    title: "Collocations",
-                    icon: Icons.link,
-                    backgroundColor: Colors.indigo,
-                    content: _buildBulletList([
-                      "make a decision",
-                      "take a break",
-                      "heavy rain (bukan strong rain)",
-                      "fast food (bukan quick food)",
-                    ]),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // LEARNING TIPS
-                  _buildSectionCard(
-                    title: "Tips to Improve Vocabulary",
-                    icon: Icons.lightbulb_outline,
-                    backgroundColor: Colors.teal,
-                    content: _buildBulletList([
-                      "Gunakan flashcard",
-                      "Kelompokkan kata berdasarkan tema",
-                      "Gunakan kata dalam kalimat",
-                      "Baca 10 menit setiap hari",
-                      "Tonton video berbahasa Inggris",
-                    ]),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // EXAMPLE PARAGRAPH
-                  _buildSectionCard(
-                    title: "Example Paragraph",
-                    icon: Icons.menu_book_outlined,
-                    backgroundColor: Colors.red,
                     content: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildParagraph(
-                          "Many students struggle with time management because they find it difficult to prioritize their tasks. "
-                          "Procrastination also becomes a problem when they delay important assignments, causing them to feel overwhelmed.",
+                          "Word Formation membantu kita memahami bagaimana kata terbentuk dan artinya. "
+                          "Ada tiga jenis utama: Prefix (awalan), Suffix (akhiran), dan Root word (kata dasar).",
                         ),
                         const SizedBox(height: 12),
+
+                        // Prefix
+                        _buildParagraph(
+                          "1. Prefix (Awalan): mengubah arti kata",
+                        ),
                         _buildBulletList([
-                          "struggle = kesulitan",
-                          "prioritize = menentukan prioritas",
-                          "procrastination = menunda pekerjaan",
-                          "overwhelmed = kewalahan",
+                          "un- : menjadikan kata negatif",
+                          "re- : melakukan lagi",
+                          "mis- : salah / keliru",
                         ]),
+                        _buildExampleCard(
+                          title: "Contoh Prefix",
+                          text: "She was unhappy because it rained all day.",
+                          meaning: "unhappy → not happy",
+                          color: Colors.purple,
+                        ),
+                        _buildExampleCard(
+                          title: "Contoh Prefix",
+                          text: "He will redo the homework to make it perfect.",
+                          meaning: "redo → do again",
+                          color: Colors.purple,
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Suffix
+                        _buildParagraph(
+                          "2. Suffix (Akhiran): mengubah arti atau fungsi kata",
+                        ),
+                        _buildBulletList([
+                          "-ful : penuh, memiliki sifat",
+                          "-less : tanpa / tidak memiliki",
+                          "-able : bisa / layak",
+                        ]),
+                        _buildExampleCard(
+                          title: "Contoh Suffix",
+                          text: "The guide was very helpful for tourists.",
+                          meaning: "helpful → full of help",
+                          color: Colors.purple,
+                        ),
+                        _buildExampleCard(
+                          title: "Contoh Suffix",
+                          text: "This task is manageable if you work slowly.",
+                          meaning: "manageable → can be managed",
+                          color: Colors.purple,
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Root Word
+                        _buildParagraph(
+                          "3. Root Word (Kata Dasar): dasar arti kata lain",
+                        ),
+                        _buildBulletList([
+                          "photo → light",
+                          "bio → life",
+                          "act → do / perform",
+                        ]),
+                        _buildExampleCard(
+                          title: "Contoh Root Word",
+                          text: "Biology is the study of living things.",
+                          meaning: "bio = life → biology = study of life",
+                          color: Colors.purple,
+                        ),
+                        _buildExampleCard(
+                          title: "Contoh Root Word",
+                          text:
+                              "Photograph means 'light writing', a picture made using light.",
+                          meaning:
+                              "photo = light → photograph = picture made using light",
+                          color: Colors.purple,
+                        ),
                       ],
                     ),
                   ),
 
                   const SizedBox(height: 16),
 
-                  // MINI PRACTICE
+                  // ==========================================
+                  // MINI PRACTICE (Tebak Arti Kata)
+                  // ==========================================
                   _buildSectionCard(
-                    title: "Mini Practice",
+                    title: "Mini Practice: Tebak Arti Kata",
                     icon: Icons.quiz,
                     backgroundColor: Colors.brown,
                     content: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildParagraph("Arti dari kata 'beneficial' adalah…"),
-                        const SizedBox(height: 12),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              showMiniPracticeAnswer = !showMiniPracticeAnswer;
-                            });
-                          },
-                          child: _buildExampleCard(
-                            title: "Konteks",
-                            text: "Regular exercise is beneficial for health.",
-                            meaning: showMiniPracticeAnswer
-                                ? "beneficial = helpful (bermanfaat)"
-                                : null,
-                            color: Colors.brown,
-                          ),
+                        // Instruksi jelas untuk user
+                        _buildParagraph(
+                          "Cara mengerjakan:\n"
+                          "1. Baca kalimat di dalam kartu.\n"
+                          "2. Coba tebak arti kata yang di kutip.\n"
+                          "3. Tap kartu untuk melihat jawabannya.",
                         ),
-                        Text(
-                          showMiniPracticeAnswer
-                              ? "Tap again to hide answer"
-                              : "Tap card to show answer",
-                          style: const TextStyle(
-                              color: Colors.grey, fontStyle: FontStyle.italic),
-                        )
+
+                        const SizedBox(height: 12),
+
+                        // 5 kartu latihan
+                        for (int i = 0; i < 5; i++)
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                showMiniPracticeAnswers[i] =
+                                    !showMiniPracticeAnswers[i];
+                              });
+                            },
+                            child: Column(
+                              children: [
+                                _buildExampleCard(
+                                  title: "Soal ${i + 1}",
+                                  text: [
+                                    "Regular exercise is `beneficial` for health.",
+                                    "She was very `diligent` in completing her homework.",
+                                    "The weather is `unpredictable` during spring.",
+                                    "He solved the `complex` problem with ease.",
+                                    "Reading daily `improves` vocabulary gradually.",
+                                  ][i],
+                                  meaning: showMiniPracticeAnswers[i]
+                                      ? [
+                                          "beneficial = helpful (bermanfaat)",
+                                          "diligent = hardworking (rajin)",
+                                          "unpredictable = cannot be predicted (tidak dapat diprediksi)",
+                                          "complex = complicated (rumit)",
+                                          "improves = meningkatkan",
+                                        ][i]
+                                      : null,
+                                  color: Colors.brown,
+                                ),
+
+                                // Hint tap (muncul kalau jawaban belum dibuka)
+                                if (!showMiniPracticeAnswers[i])
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: Text(
+                                      "👆 Tap kartu untuk melihat arti",
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontStyle: FontStyle.italic,
+                                        color: Colors.brown.shade700,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -415,10 +545,7 @@ class _VocabularyPageState extends State<VocabularyPage> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       gradient: LinearGradient(
-                        colors: [
-                          Colors.green.shade600,
-                          Colors.green.shade400,
-                        ],
+                        colors: [Colors.green.shade600, Colors.green.shade400],
                       ),
                       boxShadow: [
                         BoxShadow(
@@ -433,8 +560,8 @@ class _VocabularyPageState extends State<VocabularyPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) =>
-                                  const VocabQuizPage()),
+                            builder: (context) => const VocabQuizPage(),
+                          ),
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -452,9 +579,10 @@ class _VocabularyPageState extends State<VocabularyPage> {
                           Text(
                             "Start Practice",
                             style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white),
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ],
                       ),
@@ -464,7 +592,7 @@ class _VocabularyPageState extends State<VocabularyPage> {
                   const SizedBox(height: 32),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
