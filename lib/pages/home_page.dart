@@ -7,6 +7,7 @@ import 'package:ujicoba1/models/motivation_model.dart';
 import 'package:ujicoba1/pages/ai_chat_page.dart';
 import 'package:ujicoba1/pages/chose_test_page.dart';
 import '../database/db_helper.dart';
+import 'chose_game_page.dart';
 import 'main_idea_page.dart';
 import 'profile_page.dart';
 import 'vocabulary_page.dart';
@@ -411,8 +412,8 @@ class _HomePageState extends State<HomePage> {
                 //Ai chat
                 _buildFullMenuCard(
                   icon: Icons.smart_toy,
-                  title: "Chat with AI",
-                  subtitle: "Ask the AI about Main Ideas and Vocabulary",
+                  title: "Chat with MARY AI",
+                  subtitle: "Ask MARAI about Main Ideas and Vocabulary",
                   color: Colors.indigo,
                   onTap: () {
                     Navigator.push(
@@ -436,7 +437,7 @@ class _HomePageState extends State<HomePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const ChoseTest(),
+                        builder: (context) => const ChoseGame(),
                       ),
                     );
                   },

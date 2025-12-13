@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gemini/flutter_gemini.dart'; // 🔥 TAMBAH INI
 
 import 'pages/home_page.dart';
@@ -8,10 +9,11 @@ import 'pages/home_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 🔥 Load .env file
+  await dotenv.load(fileName: ".env");
+
   // 🔥 INIT GEMINI WAJIB ADA DI SINI
-  Gemini.init(
-    apiKey: "API_KEY_KAMU",
-  );
+  Gemini.init(apiKey: dotenv.env["GEMINI_API_KEY"]!);
 
   // // ====== HAPUS DATABASE LAMA (sementara) ======
   final dbPath = await getDatabasesPath();

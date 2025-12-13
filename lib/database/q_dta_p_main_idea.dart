@@ -1,6 +1,6 @@
 import '../models/question_model.dart';
 
-final List<Question> questions = [
+final List<Question> mainIdeaPracticeQuestions = [
   Question(
     text: "What is the Main Idea in a paragraph?",
     options: [
