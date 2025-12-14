@@ -46,6 +46,11 @@ class DatabaseHelper {
       )
     ''');
 
+    // seed semua achievement (default terkunci)
+    for (int i = 0; i < 5; i++) {
+      await db.insert("achievements", {"id": i, "unlocked": 0});
+    }
+
     // // uji coba achivment
     // await db.insert("achievements", {
     //   "id": 4,
@@ -70,6 +75,16 @@ class DatabaseHelper {
       {"name": name, "birthDate": birthDate, "photoPath": photoPath},
       where: "id = ?",
       whereArgs: [1],
+    );
+  }
+
+  Future<void> unlockAchievement(int id) async {
+    final db = await database;
+    await db.update(
+      "achievements",
+      {"unlocked": 1},
+      where: "id = ?",
+      whereArgs: [id],
     );
   }
 }

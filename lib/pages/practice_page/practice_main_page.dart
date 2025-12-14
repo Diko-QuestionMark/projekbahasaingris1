@@ -5,6 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 
 import '../../models/question_model.dart';
 import '../../models/main_practice_question.dart';
+import '../../database/db_helper.dart';
 
 class PracticeMainIdea extends StatefulWidget {
   const PracticeMainIdea({super.key});
@@ -22,6 +23,9 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
   bool _quizFinished = false;
   bool _answerLocked = false;
   int? _selectedIndex;
+
+  bool _achievementUnlocked = false;
+  bool _resultSoundPlayed = false;
 
   // ===================== CONTROLLERS =====================
   late final ConfettiController _confettiController;
@@ -60,7 +64,7 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
 
   void _initConfetti() {
     _confettiController = ConfettiController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 1200),
     );
   }
 
@@ -103,6 +107,10 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
     await _audioPlayer.play(AssetSource('sound/wrong.mp3'));
   }
 
+  Future<void> _playResultSound() async {
+    await _audioPlayer.play(AssetSource('sound/finsihQuiz.mp3'));
+  }
+
   // ===================== LOGIC =====================
   void _handleAnswer(int index) {
     if (_answerLocked) return;
@@ -112,7 +120,8 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
       _answerLocked = true;
     });
 
-    final isCorrect = index == _questions[_currentQuestionIndex].correctIndex;
+    final isCorrect =
+        index == _questions[_currentQuestionIndex].correctIndex;
 
     if (isCorrect) {
       _score++;
@@ -136,7 +145,16 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
         _answerLocked = false;
       });
     } else {
+      _handleAchievementUnlock();
       setState(() => _quizFinished = true);
+    }
+  }
+
+  Future<void> _handleAchievementUnlock() async {
+    // RULE: skor ≥ 8 → unlock achievement pertama (id = 0)
+    if (_score >= 8) {
+      await DatabaseHelper.instance.unlockAchievement(0);
+      _achievementUnlocked = true;
     }
   }
 
@@ -148,18 +166,32 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
       _quizFinished = false;
       _answerLocked = false;
       _selectedIndex = null;
+      _achievementUnlocked = false;
+      _resultSoundPlayed = false;
     });
   }
 
-  // ===================== UI =====================
+  // ===================== UI ROOT =====================
   @override
   Widget build(BuildContext context) {
     return _quizFinished ? _buildResultScreen() : _buildQuizScreen();
   }
-
   // ===================== RESULT SCREEN =====================
   Widget _buildResultScreen() {
     final textTheme = Theme.of(context).textTheme;
+
+    // Play result sound & show achievement dialog once
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_resultSoundPlayed) {
+        _playResultSound();
+        _resultSoundPlayed = true;
+      }
+
+      if (_achievementUnlocked) {
+        _showAchievementDialog();
+        _achievementUnlocked = false;
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -174,8 +206,9 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
               height: 240,
               child: FutureBuilder<LottieComposition>(
                 future: _starLottie,
-                builder: (_, snapshot) =>
-                    snapshot.hasData ? Lottie(composition: snapshot.data!) : const SizedBox(),
+                builder: (_, snapshot) => snapshot.hasData
+                    ? Lottie(composition: snapshot.data!)
+                    : const SizedBox(),
               ),
             ),
             Text("Your Score", style: textTheme.titleMedium),
@@ -199,6 +232,35 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // ===================== ACHIEVEMENT DIALOG =====================
+  void _showAchievementDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Text(
+          "🎉 Achievement Unlocked!",
+          textAlign: TextAlign.center,
+        ),
+        content: const Text(
+          "Great job!\nYou unlocked your first achievement.",
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          Center(
+            child: TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Awesome!"),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -261,8 +323,9 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
         height: 180,
         child: FutureBuilder<LottieComposition>(
           future: _educationLottie,
-          builder: (_, snapshot) =>
-              snapshot.hasData ? Lottie(composition: snapshot.data!) : const SizedBox(),
+          builder: (_, snapshot) => snapshot.hasData
+              ? Lottie(composition: snapshot.data!)
+              : const SizedBox(),
         ),
       ),
     );
@@ -288,13 +351,18 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
         animation: _shakeAnimation,
         builder: (_, child) {
           final offset =
-              (_answerLocked && index == _selectedIndex && index != question.correctIndex)
+              (_answerLocked &&
+                      index == _selectedIndex &&
+                      index != question.correctIndex)
                   ? (_shakeAnimation.value % 2 == 0
                       ? _shakeAnimation.value
                       : -_shakeAnimation.value)
                   : 0.0;
 
-          return Transform.translate(offset: Offset(offset, 0), child: child);
+          return Transform.translate(
+            offset: Offset(offset, 0),
+            child: child,
+          );
         },
         child: Container(
           width: double.infinity,
@@ -336,13 +404,15 @@ class _PracticeMainIdeaState extends State<PracticeMainIdea>
   }
 
   Widget _buildConfetti() {
-    return Align(
-      alignment: Alignment.topCenter,
-      child: ConfettiWidget(
-        confettiController: _confettiController,
-        blastDirectionality: BlastDirectionality.explosive,
-        numberOfParticles: 20,
-        gravity: 0.3,
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConfettiWidget(
+          confettiController: _confettiController,
+          blastDirectionality: BlastDirectionality.explosive,
+          numberOfParticles: 20,
+          gravity: 0.3,
+        ),
       ),
     );
   }
